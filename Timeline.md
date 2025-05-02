@@ -100,7 +100,7 @@
 
 ### 저장소 관리
 
-- GitHub 저장소: https://github.com/[사용자명]/mama_refri
+- GitHub 저장소: https://github.com/nodo1014/mama_refri
 - 기능별 브랜치 전략 사용 예정:
   - `main`: 안정 버전
   - `dev`: 개발 중인 버전
