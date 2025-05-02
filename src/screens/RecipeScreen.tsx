@@ -9,6 +9,7 @@ import {
   ScrollView,
   Linking,
   Alert,
+  Platform,
 } from "react-native";
 import { Food } from "../types";
 import RecipeCard from "../components/RecipeCard";
@@ -166,11 +167,18 @@ const RecipeScreen: React.FC<RecipeScreenProps> = ({ route, navigation }) => {
       return;
     }
 
-    // YouTube 앱이나 웹사이트에서 바로 열기 시도
-    // YouTube 앱으로 직접 열기 (딥링크)
+    // 항상 유효한 URL 형식 사용
     const youtubeAppUrl = `youtube://www.youtube.com/watch?v=${videoId}`;
     const youtubeWebUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
+    // 플랫폼에 따라 URL 선택 (웹에서는 바로 웹 URL 사용)
+    if (Platform.OS === "web") {
+      // 웹에서는 window.open 사용
+      window.open(youtubeWebUrl, "_blank");
+      return;
+    }
+
+    // 모바일 기기에서는 앱/웹 자동 전환
     Linking.canOpenURL(youtubeAppUrl)
       .then((supported) => {
         if (supported) {
