@@ -149,27 +149,48 @@ const RecipeScreen: React.FC<RecipeScreenProps> = ({ route, navigation }) => {
 
   // 유튜브 링크 열기
   const openYoutubeLink = (url: string) => {
+    // 유튜브 URL에서 비디오 ID 추출 함수
+    const extractVideoId = (youtubeUrl: string): string | null => {
+      const match = youtubeUrl.match(
+        /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+      );
+      return match ? match[1] : null;
+    };
+
     // 유튜브 URL이 유효한지 확인
-    const checkVideoAvailability = async (youtubeUrl: string) => {
+    const checkVideoAvailability = async (
+      youtubeUrl: string
+    ): Promise<boolean> => {
       try {
-        // 유튜브 비디오 ID 추출
-        const videoId = youtubeUrl.match(
-          /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
-        )?.[1];
+        const videoId = extractVideoId(youtubeUrl);
 
         if (!videoId) {
           console.error("유효하지 않은 YouTube URL 형식:", youtubeUrl);
           return false;
         }
 
-        // YouTube oEmbed API를 사용하여 비디오 유효성 확인
-        const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`;
+        // 직접 비디오 페이지에 HEAD 요청 시도
+        try {
+          // CORS 문제 해결을 위해 YouTube 비디오 정보 대신 썸네일 이미지 존재 여부 확인
+          const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+          const response = await fetch(thumbnailUrl, { method: "HEAD" });
 
-        // API 요청을 통해 비디오 존재 여부 확인
-        const response = await fetch(oembedUrl);
-
-        // 응답이 성공적이면 비디오가 존재함
-        return response.status === 200;
+          // 썸네일이 존재하면 비디오가 존재할 가능성 높음
+          if (response.ok) {
+            // 기본 썸네일이 아닌지 확인하기 위해 이미지 크기 확인
+            const contentLength = response.headers.get("content-length");
+            // 기본 썸네일(사용할 수 없는 비디오)은 일반적으로 특정 크기를 가짐
+            // YouTube의 기본 썸네일 크기는 약 1.5KB 미만인 경우가 많음
+            if (contentLength && parseInt(contentLength, 10) > 1500) {
+              return true;
+            }
+          }
+          return false;
+        } catch (error) {
+          console.error("YouTube 썸네일 확인 중 오류 발생:", error);
+          // 오류 발생 시 기본적으로 YouTube 앱 실행 시도
+          return true;
+        }
       } catch (err) {
         console.error("비디오 유효성 확인 중 오류:", err);
         return false;

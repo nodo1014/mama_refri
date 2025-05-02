@@ -63,7 +63,7 @@ export default function App() {
             fontWeight: "bold",
           },
           // 커스텀 헤더 타이틀 적용 (클릭 시 홈으로 이동)
-          headerTitle: (props) => (
+          headerTitle: () => (
             <HeaderTitle navigation={navigation} title="마마냉장고" />
           ),
         })}
