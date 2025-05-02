@@ -36,31 +36,31 @@ const getYoutubeLinks = (foods: Food[], recipe: RecipeResponse | null) => {
   if (recipeName.includes("김치") || foodNames.includes("김치")) {
     return [
       {
-        title: "백종원의 초간단 김치요리 레시피",
-        url: "https://www.youtube.com/watch?v=t4Es8Yfgy5s",
+        title: "백종원의 초간단 김치찌개 레시피",
+        url: "https://www.youtube.com/watch?v=ZxpVGUgX58k",
       },
       {
-        title: "간단하고 맛있는 김치볶음밥 만들기",
-        url: "https://www.youtube.com/watch?v=eIo2BkFOjvQ",
+        title: "백종원의 칼칼한 김치찜 만들기",
+        url: "https://www.youtube.com/watch?v=T9uI1-6Ac6Q",
       },
       {
-        title: "김치로 만드는 찌개 레시피",
-        url: "https://www.youtube.com/watch?v=tstKz1oXAMg",
+        title: "백종원의 김치볶음밥 레시피",
+        url: "https://www.youtube.com/watch?v=9bUMEJ8A5TU",
       },
     ];
   } else if (recipeName.includes("두부") || foodNames.includes("두부")) {
     return [
       {
         title: "매콤한 두부조림 황금레시피",
-        url: "https://www.youtube.com/watch?v=o1W3cz_M5Ho",
+        url: "https://www.youtube.com/watch?v=NRAz3mQKsZk",
       },
       {
-        title: "초간단 두부요리 모음",
-        url: "https://www.youtube.com/watch?v=pdgKGjWsX30",
+        title: "백종원의 손쉬운 두부요리",
+        url: "https://www.youtube.com/watch?v=Yj1JjhqfC1U",
       },
       {
         title: "건강한 두부 샐러드 만들기",
-        url: "https://www.youtube.com/watch?v=KqQNMlCDSvk",
+        url: "https://www.youtube.com/watch?v=GXpaMJW-uSY",
       },
     ];
   } else if (
@@ -70,16 +70,16 @@ const getYoutubeLinks = (foods: Food[], recipe: RecipeResponse | null) => {
   ) {
     return [
       {
-        title: "대세 계란 요리 모음 레시피",
-        url: "https://www.youtube.com/watch?v=5jW-g_bbr2Y",
+        title: "백종원의 계란말이 황금레시피",
+        url: "https://www.youtube.com/watch?v=fXVRpgtXwK4",
       },
       {
-        title: "10분 완성 계란말이 만들기",
-        url: "https://www.youtube.com/watch?v=bLQOea-Fs4Q",
+        title: "계란찜 맛있게 만드는 방법",
+        url: "https://www.youtube.com/watch?v=2lJIAEpZUfg",
       },
       {
-        title: "초간단 계란찜 레시피",
-        url: "https://www.youtube.com/watch?v=DQacCB9tDaw",
+        title: "기본 계란프라이 완벽하게 만들기",
+        url: "https://www.youtube.com/watch?v=mRCu56BNJzM",
       },
     ];
   } else {
@@ -87,15 +87,15 @@ const getYoutubeLinks = (foods: Food[], recipe: RecipeResponse | null) => {
     return [
       {
         title: "냉장고 재료로 만드는 간단 요리",
-        url: "https://www.youtube.com/watch?v=k5QxHJUbLvE",
+        url: "https://www.youtube.com/watch?v=t3jVU3cRYGM",
       },
       {
         title: "15분 완성 초간단 요리 모음",
-        url: "https://www.youtube.com/watch?v=YWMygmDfUWE",
+        url: "https://www.youtube.com/watch?v=1Q9ZJEzXYDY",
       },
       {
-        title: "남은 재료 활용 레시피",
-        url: "https://www.youtube.com/watch?v=tstKz1oXAMg",
+        title: "백종원의 남은 재료 활용 레시피",
+        url: "https://www.youtube.com/watch?v=w5Ck-oe7qvA",
       },
     ];
   }
@@ -152,7 +152,7 @@ const RecipeScreen: React.FC<RecipeScreenProps> = ({ route, navigation }) => {
     // 유튜브 URL이 유효한지 확인
     const checkVideoAvailability = async (youtubeUrl: string) => {
       try {
-        // 유튜브 oembed API를 사용하여 비디오가 존재하는지 확인
+        // 유튜브 비디오 ID 추출
         const videoId = youtubeUrl.match(
           /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
         )?.[1];
@@ -162,17 +162,23 @@ const RecipeScreen: React.FC<RecipeScreenProps> = ({ route, navigation }) => {
           return false;
         }
 
-        // 직접 썸네일 URL을 사용하여 비디오가 존재하는지 확인
-        const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
-        return thumbnailUrl;
+        // YouTube oEmbed API를 사용하여 비디오 유효성 확인
+        const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`;
+
+        // API 요청을 통해 비디오 존재 여부 확인
+        const response = await fetch(oembedUrl);
+
+        // 응답이 성공적이면 비디오가 존재함
+        return response.status === 200;
       } catch (err) {
         console.error("비디오 유효성 확인 중 오류:", err);
         return false;
       }
     };
 
-    checkVideoAvailability(url).then((result) => {
-      if (result) {
+    // 비디오 유효성 확인 후 실행
+    checkVideoAvailability(url).then((isValid) => {
+      if (isValid) {
         Linking.openURL(url).catch((err) => {
           console.error("유튜브 링크를 열 수 없습니다:", err);
           Alert.alert(
