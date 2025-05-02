@@ -157,63 +157,41 @@ const RecipeScreen: React.FC<RecipeScreenProps> = ({ route, navigation }) => {
       return match ? match[1] : null;
     };
 
-    // 유튜브 URL이 유효한지 확인
-    const checkVideoAvailability = async (
-      youtubeUrl: string
-    ): Promise<boolean> => {
-      try {
-        const videoId = extractVideoId(youtubeUrl);
+    // 비디오 ID 확인 (기본적인 형식 검증만)
+    const videoId = extractVideoId(url);
 
-        if (!videoId) {
-          console.error("유효하지 않은 YouTube URL 형식:", youtubeUrl);
-          return false;
+    if (!videoId) {
+      console.error("유효하지 않은 YouTube URL 형식:", url);
+      Alert.alert("링크 오류", "올바른 YouTube 비디오 링크가 아닙니다.");
+      return;
+    }
+
+    // YouTube 앱이나 웹사이트에서 바로 열기 시도
+    // YouTube 앱으로 직접 열기 (딥링크)
+    const youtubeAppUrl = `youtube://www.youtube.com/watch?v=${videoId}`;
+    const youtubeWebUrl = `https://www.youtube.com/watch?v=${videoId}`;
+
+    Linking.canOpenURL(youtubeAppUrl)
+      .then((supported) => {
+        if (supported) {
+          // YouTube 앱이 설치되어 있으면 앱으로 열기
+          return Linking.openURL(youtubeAppUrl);
+        } else {
+          // 앱이 없으면 웹 브라우저로 열기
+          return Linking.openURL(youtubeWebUrl);
         }
-
-        // 직접 비디오 페이지에 HEAD 요청 시도
-        try {
-          // CORS 문제 해결을 위해 YouTube 비디오 정보 대신 썸네일 이미지 존재 여부 확인
-          const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
-          const response = await fetch(thumbnailUrl, { method: "HEAD" });
-
-          // 썸네일이 존재하면 비디오가 존재할 가능성 높음
-          if (response.ok) {
-            // 기본 썸네일이 아닌지 확인하기 위해 이미지 크기 확인
-            const contentLength = response.headers.get("content-length");
-            // 기본 썸네일(사용할 수 없는 비디오)은 일반적으로 특정 크기를 가짐
-            // YouTube의 기본 썸네일 크기는 약 1.5KB 미만인 경우가 많음
-            if (contentLength && parseInt(contentLength, 10) > 1500) {
-              return true;
-            }
-          }
-          return false;
-        } catch (error) {
-          console.error("YouTube 썸네일 확인 중 오류 발생:", error);
-          // 오류 발생 시 기본적으로 YouTube 앱 실행 시도
-          return true;
-        }
-      } catch (err) {
-        console.error("비디오 유효성 확인 중 오류:", err);
-        return false;
-      }
-    };
-
-    // 비디오 유효성 확인 후 실행
-    checkVideoAvailability(url).then((isValid) => {
-      if (isValid) {
-        Linking.openURL(url).catch((err) => {
-          console.error("유튜브 링크를 열 수 없습니다:", err);
+      })
+      .catch((err) => {
+        console.error("링크 열기 오류:", err);
+        // 앱으로 열기 실패 시 웹으로 시도
+        Linking.openURL(youtubeWebUrl).catch((webErr) => {
+          console.error("YouTube 웹 링크 열기 오류:", webErr);
           Alert.alert(
             "링크 오류",
-            "유튜브 링크를 열 수 없습니다. 네트워크 연결을 확인하거나 나중에 다시 시도해주세요."
+            "YouTube를 열 수 없습니다. 네트워크 연결을 확인해주세요."
           );
         });
-      } else {
-        Alert.alert(
-          "동영상 사용 불가",
-          "해당 YouTube 동영상을 재생할 수 없습니다. 다른 동영상을 선택해주세요."
-        );
-      }
-    });
+      });
   };
 
   // 테마 선택 버튼 렌더링
