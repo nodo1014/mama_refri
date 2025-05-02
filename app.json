@@ -12,9 +12,12 @@
       "resizeMode": "contain",
       "backgroundColor": "#a880ff"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.mama-refri"
     },
     "android": {
       "adaptiveIcon": {

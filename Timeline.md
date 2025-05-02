@@ -107,3 +107,41 @@
   - `feature/기능명`: 새로운 기능 개발
 
 이 타임라인은 프로젝트 진행 상황에 따라 지속적으로 업데이트됩니다.
+
+## 2024-05-02: 문제 해결 및 설정 최적화
+
+### 해결된 문제
+
+1. **네트워크 연결 오류**
+
+   - 문제: "Unknown error: The network connection was lost." 오류 메시지 발생
+   - 원인: 여러 Expo 프로세스가 동시에 실행되어 포트 충돌 및 네트워크 연결 문제 발생
+   - 해결:
+     - `killall -9 node`로 모든 노드 프로세스 종료
+     - `metro.config.js` 파일 생성 및 네트워크 설정 최적화
+     - `package.json`의 스크립트에 `--host=lan` 옵션 추가
+     - `assets/splash.png` 파일 추가
+
+2. **개발 환경 최적화**
+   - 캐시 클리어 스크립트 추가: `npm run clear`
+   - Expo CLI 최신 버전 활용 (이전 버전 경고 해결)
+   - iOS 시뮬레이터 실행 명령어 최적화: `npx expo run:ios --clear`
+
+### 개발 환경 설정 참고사항
+
+#### Expo 개발 서버 실행 시 주의사항
+
+- 여러 Expo 프로세스를 동시에 실행하지 않도록 주의
+- 실행 전 `npm run clear`로 캐시 정리 권장
+- 네트워크 연결 문제 발생 시 다음 명령어로 서버 재시작:
+  ```bash
+  killall -9 node
+  rm -rf node_modules/.cache
+  npm start
+  ```
+
+#### 인텔 아이맥에서 시뮬레이터 실행 시 주의사항
+
+- 하드웨어 성능에 따라 빌드 시간이 오래 걸릴 수 있음
+- Xcode 및 iOS 시뮬레이터가 최신 버전으로 업데이트되어 있어야 함
+- 실기기 테스트가 더 안정적일 수 있음 (Expo Go 앱 활용)
